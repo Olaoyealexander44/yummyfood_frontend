@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import logo from "../assets/logo.svg";
+import toast from "react-hot-toast";
 
 const ReachUs = ({ setView }) => {
   const [formData, setFormData] = useState({
@@ -8,17 +9,44 @@ const ReachUs = ({ setView }) => {
     phone: "",
     message: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Simulate sending information
-    console.log("Contact Form Submitted:", formData);
-    
-    alert(`Thank you ${formData.name}! Your message has been sent successfully. We will reach out to you at ${formData.email} or ${formData.phone} shortly.`);
-    
-    // Clear form and go home
-    setFormData({ name: "", email: "", phone: "", message: "" });
-    setView('homepage');
+    setIsSubmitting(true);
+
+    try {
+      // Using a simpler Formspree submission method
+      const response = await fetch("https://formspree.io/f/xvgzjzoq", {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          message: formData.message,
+          _subject: `YummyFood: New Message from ${formData.name}`,
+        }),
+      });
+
+      if (response.ok) {
+        toast.success(`Thank you ${formData.name}! Your message has been sent successfully.`);
+        setFormData({ name: "", email: "", phone: "", message: "" });
+        setView('homepage');
+      } else {
+        const errorData = await response.json();
+        console.error("Formspree Error:", errorData);
+        throw new Error(errorData.error || "Submission failed");
+      }
+    } catch (error) {
+      console.error("Contact Form Error:", error);
+      toast.error("Oops! There was a problem sending your message. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -124,9 +152,15 @@ const ReachUs = ({ setView }) => {
 
             <button 
               type="submit"
-              className="w-full py-4 bg-[#ff6f00] text-white rounded-2xl font-black text-lg hover:bg-[#e66400] hover:shadow-xl hover:-translate-y-1 transition active:scale-95 shadow-lg shadow-orange-100"
+              disabled={isSubmitting}
+              className="w-full py-4 bg-[#ff6f00] text-white rounded-2xl font-black text-lg hover:bg-[#e66400] hover:shadow-xl hover:-translate-y-1 transition active:scale-95 shadow-lg shadow-orange-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              Send Message
+              {isSubmitting ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  Sending...
+                </>
+              ) : "Send Message"}
             </button>
           </form>
         </div>

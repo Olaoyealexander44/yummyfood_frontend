@@ -1,8 +1,31 @@
-import React from "react";
+import React, { useState } from "react";
 import logo from "../assets/logo.svg";
 import image2 from "../assets/IMAGE2.jpg";
+import { useSignin } from "../../hook/usehook";
 
-export default function SignIn({ setView }) {
+export default function SignIn({ setView, setUser }) {
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
+  const { mutate, isPending, isError, error } = useSignin();
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    mutate(formData, {
+      onSuccess: (data) => {
+        setUser(data.user);
+        setView('homepage');
+      },
+    });
+  };
+
   return (
     <div
       className="min-h-screen flex items-center justify-center p-6"
@@ -27,13 +50,22 @@ export default function SignIn({ setView }) {
             Welcome Back 👋
           </h2>
 
-          <form className="text-left">
+          {isError && (
+            <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-xl text-red-200 text-sm">
+              {error.response?.data?.error || "Invalid email or password."}
+            </div>
+          )}
+
+          <form className="text-left" onSubmit={handleSubmit}>
             <div className="mb-5">
               <label className="block text-sm font-semibold text-white mb-2 ml-1">
                 Email
               </label>
               <input
                 type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
                 placeholder="Enter your email"
                 required
                 className="w-full px-4 py-3 rounded-xl border border-white/30 bg-white/10 text-white placeholder-white/50 focus:bg-white/20 focus:border-[#ff6f00] focus:shadow-[0_0_0_4px_rgba(255,111,0,0.2)] focus:-translate-y-0.5 outline-none transition"
@@ -46,6 +78,9 @@ export default function SignIn({ setView }) {
               </label>
               <input
                 type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
                 placeholder="Enter your password"
                 required
                 className="w-full px-4 py-3 rounded-xl border border-white/30 bg-white/10 text-white placeholder-white/50 focus:bg-white/20 focus:border-[#ff6f00] focus:shadow-[0_0_0_4px_rgba(255,111,0,0.2)] focus:-translate-y-0.5 outline-none transition"
@@ -54,13 +89,10 @@ export default function SignIn({ setView }) {
 
             <button
               type="submit"
-              onClick={(e) => {
-                e.preventDefault();
-                setView('homepage');
-              }}
-              className="w-full py-4 mt-3 rounded-xl text-white font-bold text-base bg-gradient-to-br from-[#ff6f00] to-[#ff8c42] shadow-lg hover:-translate-y-1 hover:shadow-xl hover:bg-[#e66400] transition"
+              disabled={isPending}
+              className="w-full py-4 mt-3 rounded-xl text-white font-bold text-base bg-gradient-to-br from-[#ff6f00] to-[#ff8c42] shadow-lg hover:-translate-y-1 hover:shadow-xl hover:bg-[#e66400] transition disabled:opacity-50"
             >
-              Login
+              {isPending ? "Logging in..." : "Login"}
             </button>
           </form>
 
@@ -73,6 +105,13 @@ export default function SignIn({ setView }) {
               Sign up
             </button>
           </p>
+
+          <button 
+            onClick={() => setView('admin-login')}
+            className="mt-6 text-xs text-white/50 hover:text-white transition uppercase tracking-widest font-bold"
+          >
+            Admin Portal 🛡️
+          </button>
         </div>
       </div>
     </div>

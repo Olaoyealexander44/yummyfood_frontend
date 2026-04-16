@@ -1,26 +1,66 @@
 import React, { useState } from "react";
+import api from "../../axios/axios";
+import { useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 
 const IHaveMadePayment = ({ setView, orders, total, orderId, onConfirm }) => {
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     receipt: null,
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleFileChange = (e) => {
     setFormData({ ...formData, receipt: e.target.files[0] });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Confirm the order in history
-    if (onConfirm && orderId) {
-      onConfirm(orderId);
+    // Final validation check
+    if (!formData.name || !formData.email || !formData.receipt) {
+      toast.error("Please fill in all fields and upload your receipt.");
+      return;
     }
-    
-    alert(`Thank you ${formData.name}! Your proof of payment for ₦${total.toLocaleString()} has been submitted. We will process your order and send a confirmation to ${formData.email}.`);
-    setView('history');
+
+    setIsSubmitting(true);
+
+    try {
+      const data = new FormData();
+      data.append('name', formData.name);
+      data.append('email', formData.email);
+      data.append('orderId', String(orderId || Date.now()));
+      data.append('total', String(total));
+      data.append('orders', JSON.stringify(orders));
+      data.append('receipt', formData.receipt);
+
+      const response = await api.post('/payments/submit', data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      console.log('Payment submitted:', response.data);
+
+      // Invalidate queries to refresh history and dashboard data
+      queryClient.invalidateQueries({ queryKey: ['orderHistory'] });
+      queryClient.invalidateQueries({ queryKey: ['allOrders'] });
+      queryClient.invalidateQueries({ queryKey: ['adminPayments'] });
+
+      if (onConfirm && orderId) {
+        onConfirm(orderId);
+      }
+      
+      toast.success(`Proof of payment submitted!`);
+      setView('history');
+    } catch (error) {
+      console.error('Payment submission error:', error);
+      toast.error(error.response?.data?.error || "Failed to submit payment proof.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -83,15 +123,22 @@ const IHaveMadePayment = ({ setView, orders, total, orderId, onConfirm }) => {
                   onChange={handleFileChange}
                   className="w-full px-4 py-3 rounded-xl border border-dashed border-gray-300 group-hover:border-[#ff6f00] bg-gray-50 text-sm transition cursor-pointer"
                 />
+                {formData.receipt && (
+                  <p className="mt-2 text-xs text-green-600 font-medium ml-1 flex items-center gap-1">
+                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    File selected: {formData.receipt.name}
+                  </p>
+                )}
               </div>
               <p className="text-[10px] text-gray-400 mt-1 ml-1">* JPG, PNG or PDF formats only</p>
             </div>
 
             <button 
               type="submit"
-              className="w-full py-4 bg-[#ff6f00] text-white rounded-xl font-bold text-lg hover:bg-[#e66400] hover:shadow-lg hover:-translate-y-0.5 transition active:scale-95 mt-2"
+              disabled={isSubmitting}
+              className="w-full py-4 bg-[#ff6f00] text-white rounded-xl font-bold text-lg hover:bg-[#e66400] hover:shadow-lg hover:-translate-y-0.5 transition active:scale-95 mt-2 disabled:opacity-50"
             >
-              Submit Proof of Payment
+              {isSubmitting ? "Uploading..." : "Submit Proof of Payment"}
             </button>
             
             <button 

@@ -3,10 +3,11 @@ import logo from "../assets/logo.svg";
 import image1 from "../assets/IMAGE1.jpg";
 import image2 from "../assets/IMAGE2.jpg";
 import image3 from "../assets/IMAGE3.jpg";
+import toast from "react-hot-toast";
 
-export default function Homepage({ setView, orders, onAddToOrder, onDeleteOrder, setFinalOrder }) {
+export default function Homepage({ setView, orders, onAddToOrder, onDeleteOrder, setFinalOrder, user }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isRegistered, setIsRegistered] = useState(false); // New state to track if user is registered
+  const isRegistered = !!user; // Use actual user state instead of local toggle
 
   const subtotal = orders.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const discount = isRegistered ? subtotal * 0.05 : 0; // Only calculate discount if registered
@@ -18,6 +19,10 @@ export default function Homepage({ setView, orders, onAddToOrder, onDeleteOrder,
     "Order History",
     "Settings",
   ];
+
+  if (user?.user_metadata?.role === 'admin') {
+    menuItems.splice(3, 0, "Admin Dashboard");
+  }
 
   return (
     <div className="bg-[#f8f9fb] min-h-screen lg:h-screen flex flex-col lg:grid lg:grid-cols-[220px_1fr_300px] relative">
@@ -97,6 +102,8 @@ export default function Homepage({ setView, orders, onAddToOrder, onDeleteOrder,
                 if (item === "Order History") setView('history');
                 else if (item === "Order List") setView('orderlist');
                 else if (item === "Reach Us") setView('reachus');
+                else if (item === "Admin Dashboard") setView('admin-dashboard');
+                else if (item === "Settings") setView('settings');
               }}
               className={`px-4 py-3 rounded-xl flex items-center gap-3 text-[15px] font-medium cursor-pointer transition-all duration-300 ${
                 (item === "Order List" && false) || (item === "Order History" && false)
@@ -110,12 +117,33 @@ export default function Homepage({ setView, orders, onAddToOrder, onDeleteOrder,
           {/* Mobile-only links */}
           <li className="lg:hidden pt-4 mt-4 border-t border-gray-100">
             <p className="px-4 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Account</p>
-            <div className="px-4 py-3 rounded-xl text-gray-500 hover:bg-[#fdf2e9] hover:text-[#ff6f00] cursor-pointer transition">
-              Sign In
-            </div>
-            <div className="px-4 py-3 rounded-xl text-gray-500 hover:bg-[#fdf2e9] hover:text-[#ff6f00] cursor-pointer transition">
-              Sign Up
-            </div>
+            {user ? (
+              <div 
+                onClick={() => {
+                  localStorage.removeItem('token');
+                  localStorage.removeItem('user');
+                  window.location.reload();
+                }}
+                className="px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 cursor-pointer transition font-bold"
+              >
+                Logout
+              </div>
+            ) : (
+              <>
+                <div 
+                  onClick={() => setView('signin')}
+                  className="px-4 py-3 rounded-xl text-gray-500 hover:bg-[#fdf2e9] hover:text-[#ff6f00] cursor-pointer transition"
+                >
+                  Sign In
+                </div>
+                <div 
+                  onClick={() => setView('signup')}
+                  className="px-4 py-3 rounded-xl text-gray-500 hover:bg-[#fdf2e9] hover:text-[#ff6f00] cursor-pointer transition"
+                >
+                  Sign Up
+                </div>
+              </>
+            )}
           </li>
         </ul>
 
@@ -129,16 +157,45 @@ export default function Homepage({ setView, orders, onAddToOrder, onDeleteOrder,
 
       {/* Main Content */}
       <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto">
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 py-2">
-          <div>
-            <h3 className="text-xl md:text-2xl font-bold text-gray-800 mb-1 flex items-center gap-2">
-              Hello, welcome to <span className="text-[#ff6f00]">YummyFood</span> 
-              <img src={logo} alt="" className="h-6 w-6 md:h-18 md:w-18 object-contain" />
-            </h3>
-            <p className="text-gray-400 text-sm">
-              Your favorite meals are just a click away!
-            </p>
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6 py-2">
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-[#ff6f00] to-[#ff8c42] rounded-2xl flex items-center justify-center text-white shadow-lg shadow-orange-200">
+                <span className="text-xl md:text-2xl font-black uppercase">
+                  {(user?.user_metadata?.full_name || user?.email || 'G')[0]}
+                </span>
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-4 border-white rounded-full"></div>
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="text-2xl md:text-3xl font-black text-gray-800 tracking-tight">
+                  {user?.user_metadata?.role === 'admin' ? (
+                    <>Welcome, <span className="text-[#ff6f00]">Admin</span></>
+                  ) : (
+                    <>Hello, <span className="text-[#ff6f00]">{user?.user_metadata?.full_name?.split(' ')[0] || 'Friend'}</span></>
+                  )}
+                </h3>
+                <span className="text-2xl animate-bounce-short">👋</span>
+              </div>
+              <p className="text-gray-400 text-sm font-medium flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-orange-400 rounded-full"></span>
+                {user?.user_metadata?.role === 'admin' 
+                  ? "System Overview & Management" 
+                  : "Your favorite meals are just a click away!"}
+              </p>
+            </div>
           </div>
+
+          {!user && (
+            <button 
+              onClick={() => setView('signin')}
+              className="flex items-center gap-2 px-6 py-3 bg-white border border-gray-100 rounded-2xl text-sm font-bold text-gray-700 hover:bg-orange-50 hover:text-[#ff6f00] hover:border-orange-100 transition shadow-sm group"
+            >
+              Sign In to Save 5%
+              <span className="group-hover:translate-x-1 transition-transform">→</span>
+            </button>
+          )}
         </header>
 
         {/* Banner */}
@@ -215,6 +272,50 @@ export default function Homepage({ setView, orders, onAddToOrder, onDeleteOrder,
             })}
           </div>
         </section>
+
+        {/* Footer */}
+        <footer className="mt-16 pt-12 pb-8 border-t border-gray-100">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-12">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <img src={logo} alt="Logo" className="h-8 w-8 object-contain" />
+                <span className="text-xl font-black text-gray-800 tracking-tight">Yummy<span className="text-[#ff6f00]">Food</span></span>
+              </div>
+              <p className="text-sm text-gray-500 leading-relaxed max-w-xs">
+                Bringing the best Nigerian native delicacies directly to your doorstep. Fresh, healthy, and authentic.
+              </p>
+            </div>
+            
+            <div>
+              <h5 className="font-bold text-gray-800 mb-4 uppercase text-xs tracking-widest">Quick Links</h5>
+              <ul className="space-y-2 text-sm text-gray-500">
+                <li onClick={() => setView('homepage')} className="hover:text-[#ff6f00] cursor-pointer transition">Shop Menu</li>
+                <li onClick={() => setView('history')} className="hover:text-[#ff6f00] cursor-pointer transition">Track Order</li>
+                <li onClick={() => setView('reachus')} className="hover:text-[#ff6f00] cursor-pointer transition">Contact Support</li>
+              </ul>
+            </div>
+
+            <div>
+              <h5 className="font-bold text-gray-800 mb-4 uppercase text-xs tracking-widest">Connect With Us</h5>
+              <div className="flex gap-4">
+                <a href="#" className="w-10 h-10 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-400 hover:text-[#ff6f00] hover:border-[#ff6f00] transition shadow-sm">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
+                </a>
+                <a href="#" className="w-10 h-10 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-400 hover:text-[#ff6f00] hover:border-[#ff6f00] transition shadow-sm">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.584.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                </a>
+              </div>
+            </div>
+          </div>
+          
+          <div className="pt-8 border-t border-gray-50 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-widest">
+            <p>© 2024 YummyFood Nigeria. All rights reserved.</p>
+            <div className="flex gap-6">
+              <a href="#" className="hover:text-[#ff6f00] transition">Privacy Policy</a>
+              <a href="#" className="hover:text-[#ff6f00] transition">Terms of Service</a>
+            </div>
+          </div>
+        </footer>
       </main>
 
       {/* Rightbar - Hidden on mobile/tablet, visible on large screens */}
@@ -284,7 +385,7 @@ export default function Homepage({ setView, orders, onAddToOrder, onDeleteOrder,
                     Get 5% discount on all orders! 
                     <br />
                     <button 
-                      onClick={() => setIsRegistered(true)} 
+                      onClick={() => setView('signin')} 
                       className="underline font-bold hover:text-[#e66400] mt-1"
                     >
                       Sign up / Login now
@@ -301,6 +402,13 @@ export default function Homepage({ setView, orders, onAddToOrder, onDeleteOrder,
 
           <button 
             onClick={() => {
+              if (!user) {
+                toast("Please sign in to complete your order.", {
+                  icon: '🔒',
+                });
+                setView('signin');
+                return;
+              }
               setFinalOrder(orders, total);
               setView('payement');
             }}
