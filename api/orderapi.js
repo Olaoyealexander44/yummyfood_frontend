@@ -17,3 +17,9 @@ export const getAllOrders = async () => {
   const response = await api.get('/orders/all');
   return response.data;
 };
+
+// Function for admin to update order status (confirm or cancel)
+export const updateOrderStatus = async (orderId, status) => {
+  const response = await api.patch(`/orders/status/${orderId}`, { status });
+  return response.data;
+};

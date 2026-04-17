@@ -8,6 +8,7 @@ const IHaveMadePayment = ({ setView, orders, total, orderId, onConfirm }) => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    address: "",
     receipt: null,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -20,8 +21,8 @@ const IHaveMadePayment = ({ setView, orders, total, orderId, onConfirm }) => {
     e.preventDefault();
     
     // Final validation check
-    if (!formData.name || !formData.email || !formData.receipt) {
-      toast.error("Please fill in all fields and upload your receipt.");
+    if (!formData.name || !formData.email || !formData.address || !formData.receipt) {
+      toast.error("Please fill in all fields including delivery address and receipt.");
       return;
     }
 
@@ -31,6 +32,7 @@ const IHaveMadePayment = ({ setView, orders, total, orderId, onConfirm }) => {
       const data = new FormData();
       data.append('name', formData.name);
       data.append('email', formData.email);
+      data.append('address', formData.address);
       data.append('orderId', String(orderId || Date.now()));
       data.append('total', String(total));
       data.append('orders', JSON.stringify(orders));
@@ -111,6 +113,18 @@ const IHaveMadePayment = ({ setView, orders, total, orderId, onConfirm }) => {
                 value={formData.email}
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1 ml-1">Delivery Address</label>
+              <textarea 
+                required
+                rows="2"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#ff6f00] outline-none transition resize-none"
+                placeholder="Enter your full delivery address"
+                value={formData.address}
+                onChange={(e) => setFormData({...formData, address: e.target.value})}
+              ></textarea>
             </div>
 
             <div>

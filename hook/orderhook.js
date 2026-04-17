@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { saveOrder, getOrderHistory, getAllOrders } from '../api/orderapi';
+import { saveOrder, getOrderHistory, getAllOrders, updateOrderStatus } from '../api/orderapi';
 
 // Hook to save a new order
 export const useCreateOrder = () => {
@@ -35,5 +35,22 @@ export const useAllOrders = (options = {}) => {
     queryFn: getAllOrders,
     staleTime: 1000 * 60 * 5,
     ...options
+  });
+};
+
+// Hook for admin to update order status (confirm or cancel)
+export const useUpdateOrderStatus = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ orderId, status }) => updateOrderStatus(orderId, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allOrders'] });
+      queryClient.invalidateQueries({ queryKey: ['orderHistory'] });
+      console.log('Order status updated successfully');
+    },
+    onError: (error) => {
+      console.error('Failed to update order status:', error.response?.data?.error || error.message);
+    }
   });
 };

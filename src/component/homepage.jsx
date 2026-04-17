@@ -3,6 +3,9 @@ import logo from "../assets/logo.svg";
 import image1 from "../assets/IMAGE1.jpg";
 import image2 from "../assets/IMAGE2.jpg";
 import image3 from "../assets/IMAGE3.jpg";
+import image4 from "../assets/IMAGE4.jpg";
+import image5 from "../assets/IMAGE5.jpg";
+import image6 from "../assets/IMAGE6.jpg";
 import toast from "react-hot-toast";
 
 export default function Homepage({ setView, orders, onAddToOrder, onDeleteOrder, setFinalOrder, user }) {
@@ -230,10 +233,15 @@ export default function Homepage({ setView, orders, onAddToOrder, onDeleteOrder,
 
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
             {[
-              { name: "Dry Fish", price: 8000, img: image2 },
-              { name: "Native Crayfish", price: 7500, img: image3 },
-              { name: "White Native", price: 15000, img: image3 },
-              { name: "Shrimp", price: 12000, img: image3 },
+              { name: "A custard of small dry fish", price: 8000, img: image2 },
+              { name: "A rubbers of small dry fish", price: 5000, img: image2 },
+              { name: "A 50 pieces of dry sardine fish", price: 6000, img: image4 },
+              { name: "A custard of native crayfish", price: 15000, img: image6 },
+              { name: "A rubber of native crayfish", price: 8000, img: image6 },
+              { name: "half rubber native crayfish", price: 4200, img: image6 },
+              { name: "A custard of shrimps", price: 20000, img: image5 },
+              { name: "rubber of shrimps", price: 10000, img: image5 },
+              { name: "half of rubber of shrimp", price: 5000, img: image5 },
             ].map((item, i) => {
               const orderItem = orders.find(o => o.name === item.name);
               const isSelected = !!orderItem;
@@ -327,9 +335,12 @@ export default function Homepage({ setView, orders, onAddToOrder, onDeleteOrder,
 
         <div className="flex flex-col gap-5">
           <div className="flex justify-end">
-            <a href="#" className="text-xs text-[#ff6f00] font-semibold">
+            <button 
+              onClick={() => setView('orderlist')}
+              className="text-xs text-[#ff6f00] font-semibold hover:underline"
+            >
               View All
-            </a>
+            </button>
           </div>
 
           <div className="flex flex-col gap-4">
