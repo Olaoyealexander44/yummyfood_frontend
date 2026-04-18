@@ -23,3 +23,9 @@ export const updateOrderStatus = async (orderId, status) => {
   const response = await api.patch(`/orders/status/${orderId}`, { status });
   return response.data;
 };
+
+// Function for guest to track a specific order
+export const trackOrder = async (orderId, email) => {
+  const response = await api.get(`/orders/track/${orderId}/${email}`);
+  return response.data;
+};

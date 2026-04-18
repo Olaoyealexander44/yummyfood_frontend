@@ -1,11 +1,16 @@
 import React from "react";
-import { useOrderHistory, useAllOrders, useUpdateOrderStatus } from "../../hook/orderhook";
+import { useOrderHistory, useAllOrders, useUpdateOrderStatus, useTrackOrder } from "../../hook/orderhook";
 import toast from "react-hot-toast";
 
 const HistoryOrder = ({ setView, user }) => {
   const [filter, setFilter] = React.useState('all');
   const [searchQuery, setSearchQuery] = React.useState('');
   const [visibleCount, setVisibleCount] = React.useState(5);
+  
+  // Guest tracking state
+  const [trackId, setTrackId] = React.useState('');
+  const [trackEmail, setTrackEmail] = React.useState('');
+  const [trackedOrder, setTrackedOrder] = React.useState(null);
 
   // Check role in both user_metadata (from Supabase) and root user object (from our backend)
   const isAdmin = user?.user_metadata?.role === 'admin' || user?.role === 'admin';
@@ -14,13 +19,17 @@ const HistoryOrder = ({ setView, user }) => {
   const { data: userHistory, isLoading: loadingUser } = useOrderHistory({ enabled: !!user && !isAdmin });
   const { data: allHistory, isLoading: loadingAll } = useAllOrders({ enabled: isAdmin });
   const { mutate: updateStatus, isPending: isUpdating } = useUpdateOrderStatus();
+  const { mutate: trackGuestOrder, isPending: isTracking } = useTrackOrder();
 
   const rawHistory = isAdmin ? (allHistory || []) : (userHistory || []);
-  const isLoading = isAdmin ? loadingAll : loadingUser;
+  const isLoading = isAdmin ? loadingAll : (user ? loadingUser : false);
+
+  // If a guest has tracked an order, we show only that one
+  const displayHistory = trackedOrder ? [trackedOrder] : rawHistory;
 
   const filteredByStatus = filter === 'all' 
-    ? rawHistory 
-    : rawHistory.filter(order => {
+    ? displayHistory 
+    : displayHistory.filter(order => {
         const status = order.status.toLowerCase();
         if (filter === 'pending') {
           return status === 'pending' || status === 'awaiting_confirmation';
@@ -37,6 +46,27 @@ const HistoryOrder = ({ setView, user }) => {
 
   const history = searchedHistory.slice(0, visibleCount);
   const hasMore = searchedHistory.length > visibleCount;
+
+  const handleTrack = (e) => {
+    e.preventDefault();
+    if (!trackId || !trackEmail) {
+      toast.error("Please enter both Order ID and Email");
+      return;
+    }
+
+    trackGuestOrder(
+      { orderId: trackId, email: trackEmail },
+      {
+        onSuccess: (order) => {
+          setTrackedOrder(order);
+          toast.success("Order found!");
+        },
+        onError: (error) => {
+          toast.error(error.response?.data?.error || "Order not found or email mismatch");
+        }
+      }
+    );
+  };
 
   const handleStatusUpdate = (orderId, newStatus) => {
     updateStatus(
@@ -58,10 +88,10 @@ const HistoryOrder = ({ setView, user }) => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 md:mb-8">
           <div>
             <h2 className="text-2xl md:text-3xl font-black text-gray-800 tracking-tight">
-              {isAdmin ? "Global Order History" : "My Order History"}
+              {isAdmin ? "Global Order History" : user ? "My Order History" : "Track Your Order"}
             </h2>
             <p className="text-sm text-gray-500">
-              {isAdmin ? "Viewing all user orders across the platform" : "Track and manage your previous orders"}
+              {isAdmin ? "Viewing all user orders across the platform" : user ? "Track and manage your previous orders" : "Enter your details to check order status"}
             </p>
           </div>
           <button 
@@ -90,56 +120,93 @@ const HistoryOrder = ({ setView, user }) => {
           </div>
         )}
 
-        {/* Search and Filter Section */}
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
-            <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </span>
-            <input
-              type="text"
-              placeholder="Search by Order ID or item name..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-100 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-[#ff6f00]/20 focus:border-[#ff6f00] transition shadow-sm"
-            />
-          </div>
-          
-          <div className="flex overflow-x-auto pb-2 md:pb-0 gap-2 no-scrollbar">
-            {['all', 'pending', 'confirmed', 'cancelled'].map((status) => (
-              <button
-                key={status}
-                onClick={() => {
-                  setFilter(status);
-                  setVisibleCount(5); // Reset count on filter change
-                }}
-                className={`px-5 py-2 rounded-full text-xs font-bold capitalize transition-all whitespace-nowrap ${
-                  filter === status
-                    ? 'bg-[#ff6f00] text-white shadow-md'
-                    : 'bg-white text-gray-500 border border-gray-100 hover:bg-gray-50'
-                }`}
-              >
-                {status}
-              </button>
-            ))}
-
-            {hasMore && (
-              <div className="flex justify-center pt-4">
-                <button
-                  onClick={() => setVisibleCount(prev => prev + 5)}
-                  className="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-xl font-bold text-gray-700 hover:bg-gray-50 transition shadow-sm active:scale-95 group"
-                >
-                  <svg className="w-5 h-5 text-[#ff6f00] group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                  View More Orders
-                </button>
+        {/* Guest Tracking Form */}
+        {!user && !trackedOrder && (
+          <div className="bg-white p-6 md:p-8 rounded-[32px] border border-gray-100 shadow-sm mb-8">
+            <form onSubmit={handleTrack} className="flex flex-col md:flex-row gap-4 items-end">
+              <div className="flex-1 w-full">
+                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Order ID</label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. 1713456789"
+                  className="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-[#ff6f00]/20 transition"
+                  value={trackId}
+                  onChange={(e) => setTrackId(e.target.value)}
+                />
               </div>
-            )}
+              <div className="flex-1 w-full">
+                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Email Address</label>
+                <input 
+                  type="email" 
+                  placeholder="The email used for the order"
+                  className="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-[#ff6f00]/20 transition"
+                  value={trackEmail}
+                  onChange={(e) => setTrackEmail(e.target.value)}
+                />
+              </div>
+              <button 
+                type="submit"
+                disabled={isTracking}
+                className="w-full md:w-auto px-8 py-3.5 bg-[#ff6f00] text-white rounded-2xl font-bold hover:bg-[#e66400] transition shadow-lg shadow-orange-100 active:scale-95 disabled:opacity-50"
+              >
+                {isTracking ? "Searching..." : "Track Order"}
+              </button>
+            </form>
           </div>
-        </div>
+        )}
+
+        {/* Search and Filter Section (Only if user is logged in or an order is tracked) */}
+        {(user || trackedOrder) && (
+          <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <div className="relative flex-1">
+              <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </span>
+              <input
+                type="text"
+                placeholder="Search by Order ID or item name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-100 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-[#ff6f00]/20 focus:border-[#ff6f00] transition shadow-sm"
+              />
+            </div>
+            
+            <div className="flex overflow-x-auto pb-2 md:pb-0 gap-2 no-scrollbar">
+              {['all', 'pending', 'confirmed', 'cancelled'].map((status) => (
+                <button
+                  key={status}
+                  onClick={() => {
+                    setFilter(status);
+                    setVisibleCount(5); // Reset count on filter change
+                  }}
+                  className={`px-5 py-2 rounded-full text-xs font-bold capitalize transition-all whitespace-nowrap ${
+                    filter === status
+                      ? 'bg-[#ff6f00] text-white shadow-md'
+                      : 'bg-white text-gray-500 border border-gray-100 hover:bg-gray-50'
+                  }`}
+                >
+                  {status}
+                </button>
+              ))}
+
+              {hasMore && (
+                <div className="flex justify-center pt-4">
+                  <button
+                    onClick={() => setVisibleCount(prev => prev + 5)}
+                    className="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-xl font-bold text-gray-700 hover:bg-gray-50 transition shadow-sm active:scale-95 group"
+                  >
+                    <svg className="w-5 h-5 text-[#ff6f00] group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                    View More Orders
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {isLoading ? (
           <div className="flex justify-center items-center h-64">
@@ -159,10 +226,21 @@ const HistoryOrder = ({ setView, user }) => {
               {searchQuery 
                 ? `No orders found matching "${searchQuery}". Try a different search term.`
                 : (filter === 'all' 
-                  ? (isAdmin ? "There are currently no orders in the system." : "You haven't placed any orders. Start shopping today!")
+                  ? (isAdmin ? "There are currently no orders in the system." : user ? "You haven't placed any orders. Start shopping today!" : "No order found with those details.")
                   : `You don't have any orders with status "${filter}" at the moment.`)}
             </p>
-            {!isAdmin && (
+            {trackedOrder && (
+              <button 
+                onClick={() => {
+                  setTrackedOrder(null);
+                  setTrackId('');
+                }}
+                className="w-full sm:w-auto px-8 py-3 rounded-xl font-bold border border-gray-200 text-gray-600 hover:bg-gray-50 transition active:scale-95"
+              >
+                Clear Results
+              </button>
+            )}
+            {!isAdmin && !trackedOrder && (
               <button 
                 onClick={() => setView('homepage')}
                 className="w-full sm:w-auto bg-[#ff6f00] text-white px-8 py-3 rounded-xl font-bold hover:bg-[#e66400] transition active:scale-95"

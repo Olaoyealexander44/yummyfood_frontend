@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { saveOrder, getOrderHistory, getAllOrders, updateOrderStatus } from '../api/orderapi';
+import { saveOrder, getOrderHistory, getAllOrders, updateOrderStatus, trackOrder } from '../api/orderapi';
 
 // Hook to save a new order
 export const useCreateOrder = () => {
@@ -52,5 +52,12 @@ export const useUpdateOrderStatus = () => {
     onError: (error) => {
       console.error('Failed to update order status:', error.response?.data?.error || error.message);
     }
+  });
+};
+
+// Hook for guest to track a specific order
+export const useTrackOrder = () => {
+  return useMutation({
+    mutationFn: ({ orderId, email }) => trackOrder(orderId, email),
   });
 };
