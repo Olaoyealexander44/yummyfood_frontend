@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { signupUser, verifyOtp, signinUser, resendOtp, getAdminPayments } from '../api/authapi';
+import { signupUser, verifyOtp, signinUser, resendOtp, getAdminPayments, forgotPassword, resetPassword } from '../api/authapi';
 
 export const useSignup = () => {
   return useMutation({
@@ -50,6 +50,30 @@ export const useSignin = () => {
     },
     onError: (error) => {
       console.error('Signin error:', error.response?.data?.error || error.message);
+    },
+  });
+};
+
+export const useForgotPassword = () => {
+  return useMutation({
+    mutationFn: forgotPassword,
+    onSuccess: (data) => {
+      console.log('Reset email sent:', data.message);
+    },
+    onError: (error) => {
+      console.error('Forgot password error:', error.response?.data?.error || error.message);
+    },
+  });
+};
+
+export const useResetPassword = () => {
+  return useMutation({
+    mutationFn: resetPassword,
+    onSuccess: (data) => {
+      console.log('Password reset successful:', data.message);
+    },
+    onError: (error) => {
+      console.error('Reset password error:', error.response?.data?.error || error.message);
     },
   });
 };

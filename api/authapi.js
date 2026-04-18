@@ -20,6 +20,16 @@ export const signinUser = async (userData) => {
   return response.data;
 };
 
+export const forgotPassword = async (email) => {
+  const response = await api.post('/auth/forgot-password', { email });
+  return response.data;
+};
+
+export const resetPassword = async (resetData) => {
+  const response = await api.post('/auth/reset-password', resetData);
+  return response.data;
+};
+
 export const getAdminPayments = async () => {
   const response = await api.get('/payments/all');
   return response.data;

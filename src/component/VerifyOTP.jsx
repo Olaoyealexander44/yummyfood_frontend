@@ -50,7 +50,7 @@ export default function VerifyOTP({ email, setView, setUser }) {
             Verify Email ✉️
           </h2>
           <p className="text-white/80 text-[18px] mb-8">
-            We've sent a 6-digit code to <br />
+            We've sent a verification code to <br />
             <span className="text-[#ff6f00] font-bold">{email}</span>
           </p>
 

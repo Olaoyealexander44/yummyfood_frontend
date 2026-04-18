@@ -13,6 +13,7 @@ import AdminSignup from './component/adminsignup'
 import AdminLogin from './component/adminlogin'
 import Admindashboard from './component/Admindashboard'
 import Settings from './component/settings'
+import ResetPassword from './component/Resetpassword'
 
 
 
@@ -125,6 +126,7 @@ function App() {
         />
       )}
       {view === 'signin' && <SignIn setView={setView} setUser={setUser} />}
+      {view === 'reset-password' && <ResetPassword setView={setView} />}
       {view === 'signup' && <Signup setView={setView} setEmail={setRegisteredEmail} />}
       {view === 'admin-login' && <AdminLogin setView={setView} setUser={setUser} />}
       {view === 'admin-signup' && <AdminSignup setView={setView} setEmail={setRegisteredEmail} />}
