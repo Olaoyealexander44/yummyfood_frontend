@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import logo from "../assets/logo.svg";
+import api from "../../axios/axios";
 import toast from "react-hot-toast";
 
 const ReachUs = ({ setView }) => {
@@ -16,34 +17,24 @@ const ReachUs = ({ setView }) => {
     setIsSubmitting(true);
 
     try {
-      // Using a simpler Formspree submission method
-      const response = await fetch("https://formspree.io/f/xvgzjzoq", {
-        method: "POST",
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          message: formData.message,
-          _subject: `YummyFood: New Message from ${formData.name}`,
-        }),
+      // Call your OWN backend which uses Nodemailer
+      const response = await api.post("/contact/send", {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        message: formData.message,
       });
 
-      if (response.ok) {
+      if (response.status === 200) {
         toast.success(`Thank you ${formData.name}! Your message has been sent successfully.`);
         setFormData({ name: "", email: "", phone: "", message: "" });
         setView('homepage');
       } else {
-        const errorData = await response.json();
-        console.error("Formspree Error:", errorData);
-        throw new Error(errorData.error || "Submission failed");
+        throw new Error("Submission failed");
       }
     } catch (error) {
       console.error("Contact Form Error:", error);
-      toast.error("Oops! There was a problem sending your message. Please try again.");
+      toast.error(error.response?.data?.error || "Oops! There was a problem sending your message. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -73,7 +64,7 @@ const ReachUs = ({ setView }) => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
               </div>
-              <span className="text-sm font-medium">support@yummyfood.com</span>
+              <span className="text-sm font-medium">olaoyealexander44@gmail.com</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="bg-white/20 p-2 rounded-lg">
@@ -100,12 +91,16 @@ const ReachUs = ({ setView }) => {
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form 
+            onSubmit={handleSubmit} 
+            className="space-y-5"
+          >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Full Name</label>
                 <input 
                   type="text" 
+                  name="name"
                   required
                   placeholder="Enter your name"
                   className="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-[#ff6f00] focus:ring-4 focus:ring-orange-50 outline-none transition"
@@ -117,6 +112,7 @@ const ReachUs = ({ setView }) => {
                 <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Phone Number</label>
                 <input 
                   type="tel" 
+                  name="phone"
                   required
                   placeholder="e.g. 08012345678"
                   className="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-[#ff6f00] focus:ring-4 focus:ring-orange-50 outline-none transition"
@@ -130,6 +126,7 @@ const ReachUs = ({ setView }) => {
               <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Email Address</label>
               <input 
                 type="email" 
+                name="email"
                 required
                 placeholder="email@example.com"
                 className="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-[#ff6f00] focus:ring-4 focus:ring-orange-50 outline-none transition"
@@ -141,6 +138,7 @@ const ReachUs = ({ setView }) => {
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Information / Message</label>
               <textarea 
+                name="message"
                 required
                 rows="4"
                 placeholder="How can we help you?"

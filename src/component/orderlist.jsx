@@ -1,6 +1,7 @@
 import React from "react";
+import toast from "react-hot-toast";
 
-const OrderList = ({ setView, orders, onDeleteOrder, onAddToOrder }) => {
+const OrderList = ({ setView, user, orders, onDeleteOrder, onAddToOrder, setFinalOrder }) => {
   const subtotal = orders.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const totalItems = orders.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -106,7 +107,16 @@ const OrderList = ({ setView, orders, onDeleteOrder, onAddToOrder }) => {
                 </div>
                 
                 <button 
-                  onClick={() => setView('payement')}
+                  onClick={() => {
+                    if (!user) {
+                      toast("Please sign in to complete your order.", {
+                        icon: '🔒',
+                      });
+                      setView('signin');
+                      return;
+                    }
+                    setFinalOrder(orders, subtotal);
+                  }}
                   className="w-full py-4 bg-[#ff6f00] text-white rounded-2xl font-bold text-lg hover:bg-[#e66400] hover:shadow-lg hover:-translate-y-1 transition active:scale-95 shadow-xl shadow-orange-200"
                 >
                   Proceed to Checkout

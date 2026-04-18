@@ -148,9 +148,11 @@ function App() {
       {view === 'orderlist' && (
         <OrderList 
           setView={setView} 
+          user={user}
           orders={orders}
           onDeleteOrder={handleDeleteOrder}
           onAddToOrder={handleAddToOrder}
+          setFinalOrder={handleCheckout}
         />
       )}
       {view === 'reachus' && (

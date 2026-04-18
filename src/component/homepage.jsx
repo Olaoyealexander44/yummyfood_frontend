@@ -231,7 +231,7 @@ export default function Homepage({ setView, orders, onAddToOrder, onDeleteOrder,
             <span className="text-xs text-gray-400">Click to add to order</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
             {[
               { name: "A custard of small dry fish", price: 8000, img: image2 },
               { name: "A rubbers of small dry fish", price: 5000, img: image2 },
@@ -421,7 +421,6 @@ export default function Homepage({ setView, orders, onAddToOrder, onDeleteOrder,
                 return;
               }
               setFinalOrder(orders, total);
-              setView('payement');
             }}
             className="w-full p-4 bg-[#ff6f00] text-white rounded-2xl font-bold text-base hover:-translate-y-1 hover:bg-[#e66400] hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={orders.length === 0}
