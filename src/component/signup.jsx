@@ -3,6 +3,29 @@ import logo from "../assets/logo.svg";
 import image3 from "../assets/IMAGE3.jpg";
 import { useSignup } from "../../hook/usehook";
 
+const termsAndPrivacy = {
+  terms: [
+    "All orders must be paid for in full before processing or delivery.",
+    "Customers are responsible for providing correct delivery details such as address and contact information.",
+    "Delivery times are estimates and may be affected by factors such as location, traffic, weather conditions, or logistics delays.",
+    "Once payment is made and confirmed, orders may not be cancelled unless approved by management.",
+    "Customers are expected to inspect their orders upon delivery and report any issues immediately.",
+    "Refunds are not automatic and will only be processed after proper review and verification.",
+    "We reserve the right to suspend, restrict, or permanently delete any account if we suspect fraudulent, suspicious, abusive, or illegal activity.",
+    "YummyFood Ventures may refuse service or cancel any order that appears suspicious or violates our policies.",
+    "By using our platform, you agree to comply with these terms and conditions.",
+  ],
+  privacy: [
+    "We collect only the necessary personal information required to process orders and deliver services efficiently.",
+    "Your personal information will not be sold, rented, or shared with third parties except when required for delivery or operational purposes.",
+    "Payment details are handled securely through trusted payment systems, and we do not store sensitive card information.",
+    "We may use your contact information (including WhatsApp or email) to provide order updates, delivery coordination, and customer support.",
+    "All customer data is stored securely and protected against unauthorized access.",
+    "We may remove or restrict access to accounts involved in suspicious, fraudulent, or harmful activity to protect the platform and other users.",
+    "By using this platform, you consent to the collection and use of your information as described in this policy.",
+  ],
+};
+
 export default function Signup({ setView, setEmail }) {
   const [formData, setFormData] = useState({
     fullName: "",
@@ -10,6 +33,8 @@ export default function Signup({ setView, setEmail }) {
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [acceptedPolicies, setAcceptedPolicies] = useState(false);
+  const [showPolicies, setShowPolicies] = useState(false);
 
   const { mutate, isPending, isError, error, isSuccess } = useSignup();
 
@@ -20,6 +45,11 @@ export default function Signup({ setView, setEmail }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (!acceptedPolicies) {
+      return;
+    }
+
     mutate(formData, {
       onSuccess: () => {
         setEmail(formData.email);
@@ -40,6 +70,68 @@ export default function Signup({ setView, setEmail }) {
     >
       <div className="relative w-full max-w-xl">
         <div className="absolute -inset-5 rounded-3xl blur-2xl bg-[radial-gradient(circle,rgba(255,111,0,0.2),transparent_70%)] -z-10" />
+
+        {showPolicies && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+            <div className="w-full max-w-3xl rounded-2xl bg-white shadow-2xl border border-gray-100 overflow-hidden">
+              <div className="p-6 border-b border-gray-100 flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-black text-gray-800">Terms &amp; Conditions</h2>
+                  <p className="text-sm text-gray-500 mt-1">Please read our terms and privacy policy.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowPolicies(false)}
+                  className="px-3 py-2 rounded-xl border border-gray-200 text-gray-700 font-bold hover:bg-gray-50 transition"
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="p-6 max-h-[60vh] overflow-y-auto space-y-6">
+                <div>
+                  <h3 className="text-lg font-black text-gray-800 mb-3">TERMS &amp; CONDITIONS</h3>
+                  <ul className="list-disc pl-6 space-y-2 text-gray-700">
+                    {termsAndPrivacy.terms.map((t) => (
+                      <li key={t} className="text-sm leading-6">{t}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-black text-gray-800 mb-3">PRIVACY POLICY</h3>
+                  <ul className="list-disc pl-6 space-y-2 text-gray-700">
+                    {termsAndPrivacy.privacy.map((p) => (
+                      <li key={p} className="text-sm leading-6">{p}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <div className="p-6 border-t border-gray-100 flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-center">
+                <label className="flex items-start gap-3 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={acceptedPolicies}
+                    onChange={(e) => setAcceptedPolicies(e.target.checked)}
+                    className="mt-1 h-4 w-4 accent-[#ff6f00]"
+                  />
+                  <span>
+                    I have read and agree to the Terms &amp; Conditions and Privacy Policy.
+                  </span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowPolicies(false)}
+                  className="w-full sm:w-auto px-5 py-3 rounded-xl bg-[#ff6f00] text-white font-bold hover:bg-[#e66400] transition disabled:opacity-50"
+                  disabled={!acceptedPolicies}
+                >
+                  Continue
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="bg-white/15 backdrop-blur-2xl border border-white/20 shadow-2xl rounded-[30px] px-10 py-12 text-center">
           <img
@@ -131,9 +223,31 @@ export default function Signup({ setView, setEmail }) {
               </div>
             </div>
 
+            <div className="mt-2">
+              <label className="flex items-start gap-3 text-xs text-white/90">
+                <input
+                  type="checkbox"
+                  checked={acceptedPolicies}
+                  onChange={(e) => setAcceptedPolicies(e.target.checked)}
+                  className="mt-1 h-4 w-4 accent-[#ff6f00]"
+                />
+                <span>
+                  I agree to the{" "}
+                  <button
+                    type="button"
+                    onClick={() => setShowPolicies(true)}
+                    className="text-[#ff6f00] font-bold hover:underline"
+                  >
+                    Terms &amp; Conditions and Privacy Policy
+                  </button>
+                  .
+                </span>
+              </label>
+            </div>
+
             <button
               type="submit"
-              disabled={isPending}
+              disabled={isPending || !acceptedPolicies}
               className="w-full py-4 mt-3 rounded-xl text-white font-bold text-base bg-gradient-to-br from-[#ff6f00] to-[#ff8c42] shadow-lg hover:-translate-y-1 hover:shadow-xl hover:bg-[#e66400] transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isPending ? "Signing Up..." : "Sign Up"}

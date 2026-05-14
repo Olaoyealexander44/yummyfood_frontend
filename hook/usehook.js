@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { signupUser, verifyOtp, signinUser, resendOtp, getAdminPayments, forgotPassword, resetPassword } from '../api/authapi';
+import { signupUser, verifyOtp, signinUser, resendOtp, getAdminPayments, getAdminUserCount, forgotPassword, resetPassword } from '../api/authapi';
 
 export const useSignup = () => {
   return useMutation({
@@ -82,6 +82,14 @@ export const useAdminPayments = () => {
   return useQuery({
     queryKey: ['adminPayments'],
     queryFn: getAdminPayments,
-    staleTime: 1000 * 60 * 2, // 2 minutes
+    staleTime: 1000 * 60 * 2,
+  });
+};
+
+export const useAdminUserCount = () => {
+  return useQuery({
+    queryKey: ['adminUserCount'],
+    queryFn: getAdminUserCount,
+    staleTime: 1000 * 60 * 5,
   });
 };

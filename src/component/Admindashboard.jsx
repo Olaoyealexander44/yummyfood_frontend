@@ -1,6 +1,6 @@
 import React from "react";
 import logo from "../assets/logo.svg";
-import { useAdminPayments } from "../../hook/usehook";
+import { useAdminPayments, useAdminUserCount } from "../../hook/usehook";
 import { useUpdateOrderStatus } from "../../hook/orderhook";
 import toast from "react-hot-toast";
 
@@ -11,6 +11,7 @@ const Admindashboard = ({ setView, user }) => {
   const [visibleCount, setVisibleCount] = React.useState(10);
   
   const { data: payments, isLoading, isError, error, refetch } = useAdminPayments();
+  const { data: userCountData, isLoading: isUsersLoading } = useAdminUserCount();
   const { mutate: updateStatus, isPending: isUpdating } = useUpdateOrderStatus();
 
   const handleStatusUpdate = (orderId, status) => {
@@ -147,7 +148,22 @@ const Admindashboard = ({ setView, user }) => {
         </header>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+            <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-1">Total Customers</p>
+            <h3 className="text-2xl font-black text-gray-800">{isUsersLoading ? '...' : (userCountData?.customers ?? 0)}</h3>
+            <span className="text-purple-500 text-xs font-bold">Registered customers</span>
+          </div>
+          <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+            <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-1">Total Users</p>
+            <h3 className="text-2xl font-black text-gray-800">{isUsersLoading ? '...' : (userCountData?.total ?? 0)}</h3>
+            <span className="text-indigo-500 text-xs font-bold">All registered accounts</span>
+          </div>
+          <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+            <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-1">Total Admins</p>
+            <h3 className="text-2xl font-black text-gray-800">{isUsersLoading ? '...' : (userCountData?.admins ?? 0)}</h3>
+            <span className="text-rose-500 text-xs font-bold">Admin accounts</span>
+          </div>
           <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
             <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-1">Total Sales</p>
             <h3 className="text-2xl font-black text-gray-800">₦{totalSales.toLocaleString()}</h3>

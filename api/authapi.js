@@ -34,3 +34,8 @@ export const getAdminPayments = async () => {
   const response = await api.get('/payments/all');
   return response.data;
 };
+
+export const getAdminUserCount = async () => {
+  const response = await api.get('/auth/users/count');
+  return response.data;
+};

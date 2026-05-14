@@ -3,12 +3,23 @@ import logo from "../assets/logo.svg";
 import image2 from "../assets/IMAGE2.jpg";
 import { useSignin } from "../../hook/usehook";
 
+const terms = [
+  "All payments made to YummyFood Ventures are final once an order has been confirmed.",
+  "Customers are responsible for providing accurate delivery details and contact information.",
+  "Orders will only be processed after payment confirmation and receipt verification.",
+  "Delivery timelines may vary depending on location, traffic, weather conditions, or logistics availability.",
+  "Customers must inspect their orders upon delivery and report any issues immediately.",
+  "YummyFood Ventures reserves the right to cancel or decline suspicious or fraudulent orders.",
+  "By using this platform, you agree to these terms and conditions.",
+];
+
 export default function SignIn({ setView, setUser }) {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
 
   const { mutate, isPending, isError, error } = useSignin();
 
@@ -39,6 +50,34 @@ export default function SignIn({ setView, setUser }) {
     >
       <div className="relative w-full max-w-xl">
         <div className="absolute -inset-5 rounded-3xl blur-2xl bg-[radial-gradient(circle,rgba(255,111,0,0.2),transparent_70%)] -z-10" />
+
+        {showTerms && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+            <div className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl border border-gray-100 overflow-hidden">
+              <div className="p-6 border-b border-gray-100 flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-black text-gray-800">Terms &amp; Conditions</h2>
+                  <p className="text-sm text-gray-500 mt-1">Please read before continuing.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowTerms(false)}
+                  className="px-3 py-2 rounded-xl border border-gray-200 text-gray-700 font-bold hover:bg-gray-50 transition"
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="p-6 max-h-[55vh] overflow-y-auto">
+                <ul className="list-disc pl-6 space-y-3 text-gray-700">
+                  {terms.map((t) => (
+                    <li key={t} className="text-sm leading-6">{t}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="bg-white/15 backdrop-blur-2xl border border-white/20 shadow-2xl rounded-[30px] px-10 py-12 text-center">
           <img
@@ -132,6 +171,18 @@ export default function SignIn({ setView, setUser }) {
             >
               Sign up
             </button>
+          </p>
+
+          <p className="mt-3 text-xs text-white/70">
+            By continuing, you agree to our{" "}
+            <button
+              type="button"
+              onClick={() => setShowTerms(true)}
+              className="text-[#ff6f00] font-bold hover:underline"
+            >
+              Terms &amp; Conditions
+            </button>
+            .
           </p>
 
           <button 
