@@ -5,7 +5,7 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || (
     window.location.hostname === 'localhost' 
       ? 'http://localhost:5000/api' 
-      : 'https://yummyfood-backend.onrender.com/api'
+      : 'https://api.yummyfood.it.com/api'
   ),
   headers: {
     'Content-Type': 'application/json',
