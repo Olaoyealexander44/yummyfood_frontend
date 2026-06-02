@@ -81,8 +81,8 @@ const PaymentPage = ({ setView }) => {
 
         <div className="bg-orange-50 p-4 rounded-lg mb-5 text-left">
           <p className="font-semibold">OPAY</p>
-          <p className="font-semibold">Account Name: YummyFood Ventures</p>
-          <p className="font-semibold">Account Number: 0123456789</p>
+          <p className="font-semibold">Account Name: Olaoye Alexander Oluwayanmife</p>
+          <p className="font-semibold">Account Number: 8169142969</p>
         </div>
 
         <button

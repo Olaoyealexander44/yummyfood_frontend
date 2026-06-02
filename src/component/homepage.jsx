@@ -236,12 +236,12 @@ export default function Homepage({ setView, orders, onAddToOrder, onDeleteOrder,
               { name: "A custard of small dry fish", price: 8000, img: image2 },
               { name: "A rubbers of small dry fish", price: 5000, img: image2 },
               { name: "A 50 pieces of dry sardine fish", price: 6000, img: image4 },
-              { name: "A custard of native crayfish", price: 15000, img: image6 },
-              { name: "A rubber of native crayfish", price: 8000, img: image6 },
-              { name: "half rubber native crayfish", price: 4200, img: image6 },
-              { name: "A custard of shrimps", price: 20000, img: image5 },
-              { name: "rubber of shrimps", price: 10000, img: image5 },
-              { name: "half of rubber of shrimp", price: 5000, img: image5 },
+              { name: "A custard of native crayfish", price: 20000, img: image6 },
+              { name: "A rubber of native crayfish", price: 10000, img: image6 },
+              { name: "half rubber native crayfish", price: 5200, img: image6 },
+              { name: "A custard of shrimps", price: 30000, img: image5 },
+              { name: "rubber of shrimps", price: 15000, img: image5 },
+              { name: "half of rubber of shrimp", price: 8000, img: image5 },
             ].map((item, i) => {
               const orderItem = orders.find(o => o.name === item.name);
               const isSelected = !!orderItem;
